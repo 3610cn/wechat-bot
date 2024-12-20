@@ -6,6 +6,7 @@ import { get302AiReply } from '../302ai/index.js'
 import { getDifyReply } from '../dify/index.js'
 import { getOllamaReply } from '../ollama/index.js'
 import { getTongyiReply } from '../tongyi/index.js'
+import { getCozecomAiReply } from '../cozecom/index.js'
 
 /**
  * 获取ai服务
@@ -13,6 +14,7 @@ import { getTongyiReply } from '../tongyi/index.js'
  * @returns {Promise<void>}
  */
 export function getServe(serviceType) {
+  return getCozecomAiReply
   switch (serviceType) {
     case 'ChatGPT':
       return getGptReply

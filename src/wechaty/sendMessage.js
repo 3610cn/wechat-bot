@@ -16,6 +16,21 @@ const aliasWhiteList = env.ALIAS_WHITELIST ? env.ALIAS_WHITELIST.split(',') : []
 const roomWhiteList = env.ROOM_WHITELIST ? env.ROOM_WHITELIST.split(',') : []
 
 import { getServe } from './serve.js'
+import { downloadImageAsFileBox } from './utils.js'
+
+const say = async (contact, content) => {
+  const imageUrlMatch = content.match(/!\[.*?\]\((.*?)\)/)
+  console.log(content, !!imageUrlMatch)
+  if (imageUrlMatch) {
+    content = content.replace(imageUrlMatch[0], '')
+    const imageUrl = imageUrlMatch[1]
+    const imageMessage = await downloadImageAsFileBox(imageUrl)
+    await contact.say(content)
+    await contact.say(imageMessage)
+  } else {
+    await contact.say(content)
+  }
+}
 
 /**
  * 默认消息发送
@@ -46,16 +61,16 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
     if (isRoom && room && content.replace(`${botName}`, '').trimStart().startsWith(`${autoReplyPrefix}`)) {
       const question = (await msg.mentionText()) || content.replace(`${botName}`, '').replace(`${autoReplyPrefix}`, '') // 去掉艾特的消息主体
       console.log('🌸🌸🌸 / question: ', question)
-      const response = await getReply(question)
-      await room.say(response)
+      const response = await getReply(question, { to: roomName })
+      await say(room, response)
     }
     // 私人聊天，白名单内的直接发送
     // 私人聊天直接匹配自动回复前缀
     if (isAlias && !room && content.trimStart().startsWith(`${autoReplyPrefix}`)) {
       const question = content.replace(`${autoReplyPrefix}`, '')
       console.log('🌸🌸🌸 / content: ', question)
-      const response = await getReply(question)
-      await contact.say(response)
+      const response = await getReply(question, { to: alias })
+      await say(contact, response)
     }
   } catch (e) {
     console.error(e)
