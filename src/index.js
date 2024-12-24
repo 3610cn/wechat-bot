@@ -33,6 +33,7 @@ function onLogin(user) {
   const date = new Date()
   console.log(`Current time:${date}`)
   console.log(`Automatic robot chat mode has been activated`)
+  scheduleReportToRoom(this)
 }
 
 // 登出
@@ -105,7 +106,6 @@ async function botStart() {
     .start()
     .then(() => console.log('Start to log in wechat...'))
     .catch((e) => console.error('❌ botStart error: ', e))
-  await scheduleReportToRoom(bot)
 }
 
 process.on('uncaughtException', (err) => {

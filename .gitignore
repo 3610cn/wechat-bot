@@ -5,6 +5,7 @@ test.js
 package-lock.json
 yarn.lock
 Chromium.app
+tmp
 
 .DS_Store
 .idea

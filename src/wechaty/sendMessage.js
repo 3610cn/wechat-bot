@@ -62,7 +62,6 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
     // 区分群聊和私聊
     // 群聊消息去掉艾特主体后，匹配自动回复前缀
     if (isRoom && room && content.replace(`${botName}`, '').trimStart().startsWith(`${autoReplyPrefix}`)) {
-      console.log(room)
       const question = (await msg.mentionText()) || content.replace(`${botName}`, '').replace(`${autoReplyPrefix}`, '') // 去掉艾特的消息主体
       console.log('🌸🌸🌸 / question: ', question)
       const getReply = getServe(ServiceType)
@@ -76,7 +75,6 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
       console.log('🌸🌸🌸 / content: ', question)
       const getReply = getServe(ServiceType, { prompt: question })
       const response = await getReply(question, { to: alias })
-      console.log(response)
       await say(contact, response)
     }
   } catch (e) {
