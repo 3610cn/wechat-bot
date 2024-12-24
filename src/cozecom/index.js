@@ -10,6 +10,22 @@ const botId = env.COZECOM_BOT_ID
 const baseURL = COZE_COM_BASE_URL
 
 let client
+let conversationIdMap = {}
+
+async function createConversation(bot_id) {
+  const conversation = await client.conversations.create({
+    bot_id: botId,
+    messages: [
+      // {
+      //   role: RoleType.Assistant,
+      //   content_type: 'text',
+      //   content: 'Hi, you are an assistant',
+      // },
+    ],
+    meta_data: {},
+  })
+  return conversation
+}
 
 export async function getCozecomAiReply(prompt, options) {
   if (!client) {
@@ -19,9 +35,18 @@ export async function getCozecomAiReply(prompt, options) {
     })
   }
 
+  const { to = 'default' } = options
+  let conversationId = conversationIdMap[to]
+  if (!conversationId) {
+    const conversation = await createConversation(botId)
+    conversationId = conversation.id
+    conversationIdMap[to] = conversationId
+  }
+
   console.log('use cozecom')
   try {
     const stream = await client.chat.stream({
+      conversation_id: conversationId,
       bot_id: botId,
       additional_messages: [
         {

@@ -1,6 +1,5 @@
 import axios from 'axios'
 import dotenv from 'dotenv'
-import { getCozeAiReply } from '../coze/index.js'
 import q from '../q.js'
 
 dotenv.config()
@@ -34,8 +33,6 @@ export async function get302AiReply(prompt, options) {
   if (prompt === '1') {
     q.clear(to)
     return 'copy that'
-  } else if (prompt.indexOf('天气') > -1) {
-    return getCozeAiReply(prompt, options)
   }
   try {
     const config = setConfig(prompt, options)

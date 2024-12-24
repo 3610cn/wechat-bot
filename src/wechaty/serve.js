@@ -7,15 +7,25 @@ import { getDifyReply } from '../dify/index.js'
 import { getOllamaReply } from '../ollama/index.js'
 import { getTongyiReply } from '../tongyi/index.js'
 import { getCozecomAiReply } from '../cozecom/index.js'
+import { getCozeAiReply } from '../coze/index.js'
+
+let switchServerType = ''
 
 /**
  * 获取ai服务
  * @param serviceType 服务类型 'GPT' | 'Kimi'
  * @returns {Promise<void>}
  */
-export function getServe(serviceType) {
-  return getCozecomAiReply
-  switch (serviceType) {
+export function getServe(serviceType, options = {}) {
+  const { prompt } = options
+  if (/^sss/.test(prompt)) {
+    switchServerType = prompt.replace(/^sss/, '')
+  }
+  switch (switchServerType || serviceType) {
+    case 'Coze':
+      return getCozeAiReply
+    case 'CozeCom':
+      return getCozeComAiReply
     case 'ChatGPT':
       return getGptReply
     case 'Kimi':
@@ -33,6 +43,6 @@ export function getServe(serviceType) {
     case 'tongyi':
       return getTongyiReply
     default:
-      return getGptReply
+      return getCozeComAiReply
   }
 }

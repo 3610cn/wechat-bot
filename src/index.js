@@ -8,6 +8,7 @@ import fs from 'fs'
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { defaultMessage } from './wechaty/sendMessage.js'
+import { scheduleReportToRoom } from './schedule.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -99,11 +100,12 @@ bot.on('error', (e) => {
 })
 
 // 启动微信机器人
-function botStart() {
-  bot
+async function botStart() {
+  await bot
     .start()
     .then(() => console.log('Start to log in wechat...'))
     .catch((e) => console.error('❌ botStart error: ', e))
+  await scheduleReportToRoom(bot)
 }
 
 process.on('uncaughtException', (err) => {
