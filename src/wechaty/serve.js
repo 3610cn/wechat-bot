@@ -25,7 +25,7 @@ export function getServe(serviceType, options = {}) {
     case 'Coze':
       return getCozeAiReply
     case 'CozeCom':
-      return getCozeComAiReply
+      return getCozecomAiReply
     case 'ChatGPT':
       return getGptReply
     case 'Kimi':

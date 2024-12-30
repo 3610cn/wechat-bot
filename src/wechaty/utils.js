@@ -46,6 +46,30 @@ export async function downloadImageAsFileBox(imageUrl) {
   }
 }
 
+export async function getStreamFromFileBox(filebox) {
+  try {
+    // 创建临时文件夹（如果不存在）
+    const tempDir = path.join(__dirname, '../../temp')
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true })
+    }
+
+    const fileName = filebox.name
+    let ext = path.extname(fileName) || '.jpg'
+    if (ext.indexOf('?') > -1) {
+      ext = ext.slice(0, ext.indexOf('?'))
+    }
+    const filePath = path.join(tempDir, Math.random() + ext)
+    await filebox.toFile(filePath)
+
+    const newFileBox = FileBox.fromFile(filePath)
+    const fileStream = await newFileBox.toStream()
+    return fileStream
+  } catch (error) {
+    console.error('下载或发送图片失败:', error)
+  }
+}
+
 // 下载图片并转换为 Base64
 export async function downloadImageAsBase64(imageUrl) {
   try {

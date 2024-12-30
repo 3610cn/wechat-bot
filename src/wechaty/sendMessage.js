@@ -16,7 +16,7 @@ const aliasWhiteList = env.ALIAS_WHITELIST ? env.ALIAS_WHITELIST.split(',') : []
 const roomWhiteList = env.ROOM_WHITELIST ? env.ROOM_WHITELIST.split(',') : []
 
 import { getServe } from './serve.js'
-import { downloadImageAsFileBox } from './utils.js'
+import { downloadImageAsFileBox, getStreamFromFileBox } from './utils.js'
 
 const say = async (contact, content) => {
   if (typeof content.match !== 'function') {
@@ -24,7 +24,6 @@ const say = async (contact, content) => {
     return
   }
   const imageUrlMatch = content.match(/!\[.*?\]\((.*?)\)/)
-  console.log(content, !!imageUrlMatch)
   if (imageUrlMatch) {
     content = content.replace(imageUrlMatch[0], '')
     const imageUrl = imageUrlMatch[1]
@@ -53,28 +52,44 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   const remarkName = await contact.alias() // 备注名称
   const name = await contact.name() // 微信名称
   const isText = msg.type() === bot.Message.Type.Text // 消息类型是否为文本
-  const isRoom = roomWhiteList.includes(roomName) && content.includes(`${botName}`) // 是否在群聊白名单内并且艾特了机器人
+  const isImage = msg.type() === bot.Message.Type.Image // 消息类型是否图片
+  let isRoom = roomWhiteList.includes(roomName) // 是否在群聊白名单内
+  isRoom = isRoom && (content.includes(`${botName}`) || isImage) // 艾特了机器人或者是图片消息直接处理
   const isAlias = aliasWhiteList.includes(remarkName) || aliasWhiteList.includes(name) // 发消息的人是否在联系人白名单内
   const isBotSelf = botName === `@${remarkName}` || botName === `@${name}` // 是否是机器人自己
   // TODO 你们可以根据自己的需求修改这里的逻辑
-  if (isBotSelf || !isText) return // 如果是机器人自己发送的消息或者消息类型不是文本则不处理
+  if (isBotSelf) return // 如果是机器人自己发送的消息或者消息类型不是文本则不处理
   try {
     // 区分群聊和私聊
     // 群聊消息去掉艾特主体后，匹配自动回复前缀
     if (isRoom && room && content.replace(`${botName}`, '').trimStart().startsWith(`${autoReplyPrefix}`)) {
-      const question = (await msg.mentionText()) || content.replace(`${botName}`, '').replace(`${autoReplyPrefix}`, '') // 去掉艾特的消息主体
-      console.log('🌸🌸🌸 / question: ', question)
-      const getReply = getServe(ServiceType)
-      const response = await getReply(question, { to: roomName })
+      let question = (await msg.mentionText()) || content.replace(`${botName}`, '').replace(`${autoReplyPrefix}`, '') // 去掉艾特的消息主体
+      if (isImage) {
+        console.log('question: [Image]')
+        const fileBox = await msg.toFileBox()
+        // 先存一下本地，再读出来上传
+        question = await getStreamFromFileBox(fileBox)
+      } else {
+        console.log('🌸🌸🌸 / question: ', question)
+      }
+      const getReply = getServe(ServiceType, { prompt: question })
+      const response = await getReply(question, { to: alias, isImage })
       await say(room, response)
     }
     // 私人聊天，白名单内的直接发送
     // 私人聊天直接匹配自动回复前缀
     if (isAlias && !room && content.trimStart().startsWith(`${autoReplyPrefix}`)) {
-      const question = content.replace(`${autoReplyPrefix}`, '')
-      console.log('🌸🌸🌸 / content: ', question)
+      let question = content.replace(`${autoReplyPrefix}`, '')
+      if (isImage) {
+        console.log('🌸🌸🌸 / content: [Image]')
+        const fileBox = await msg.toFileBox()
+        // 先存一下本地，再读出来上传
+        question = await getStreamFromFileBox(fileBox)
+      } else {
+        console.log('🌸🌸🌸 / content: ', question)
+      }
       const getReply = getServe(ServiceType, { prompt: question })
-      const response = await getReply(question, { to: alias })
+      const response = await getReply(question, { to: alias, isImage })
       await say(contact, response)
     }
   } catch (e) {

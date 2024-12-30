@@ -33,7 +33,7 @@ function onLogin(user) {
   const date = new Date()
   console.log(`Current time:${date}`)
   console.log(`Automatic robot chat mode has been activated`)
-  scheduleReportToRoom(this)
+  // scheduleReportToRoom(this)
 }
 
 // 登出
@@ -166,8 +166,13 @@ function handleStart(type) {
         return botStart()
       }
       break
+    case 'CozeCom':
+      if (env.COZECOM_API_KEY) {
+        return botStart()
+      }
+      break
     default:
-      console.log('❌ 服务类型错误, 目前支持： ChatGPT | Kimi | Xunfei | DIFY | OLLAMA | TONGYI')
+      console.log('❌ 服务类型错误, 目前支持： ChatGPT | Kimi | Xunfei | DIFY | OLLAMA | TONGYI | CozeCom')
   }
 }
 
@@ -181,6 +186,7 @@ export const serveList = [
   // ... 欢迎大家接入更多的服务
   { name: 'ollama', value: 'ollama' },
   { name: 'tongyi', value: 'tongyi' },
+  { name: 'CozeCom', value: 'CozeCom' },
 ]
 const questions = [
   {

@@ -35,7 +35,7 @@ export async function getCozecomAiReply(prompt, options) {
     })
   }
 
-  const { to = 'default' } = options
+  const { to = 'default', isImage } = options
   let conversationId = conversationIdMap[to]
   if (!conversationId) {
     const conversation = await createConversation(botId)
@@ -43,18 +43,32 @@ export async function getCozecomAiReply(prompt, options) {
     conversationIdMap[to] = conversationId
   }
 
-  console.log('use cozecom')
+  console.log('use cozecom, 消息类型: ', isImage ? '图片' : '文本')
+  let additional_messages = []
+  if (isImage) {
+    const file = await client.files.upload({ file: prompt })
+    additional_messages.push({
+      role: RoleType.User,
+      content: '请描述一下这张图片',
+      content_type: 'text',
+    })
+    additional_messages.push({
+      role: RoleType.User,
+      content: [{ type: 'image', file_id: file.id }],
+      content_type: 'object_string',
+    })
+  } else {
+    additional_messages.push({
+      role: RoleType.User,
+      content: prompt,
+      content_type: 'text',
+    })
+  }
   try {
     const stream = await client.chat.stream({
       conversation_id: conversationId,
       bot_id: botId,
-      additional_messages: [
-        {
-          role: RoleType.User,
-          content: prompt,
-          content_type: 'text',
-        },
-      ],
+      additional_messages,
       auto_save_history: true,
     })
 

@@ -13,13 +13,13 @@ const CONCACT_TYPE = {
 
 const SCHEDULE_LIST = [
   {
-    id: '@0f472d23e03fdbd0d061674e8be53f17',
+    id: '蛋蛋毛',
     city: '上海',
     type: CONCACT_TYPE.CONTCAT,
-    time: '41 17 * * *',
+    time: '41 8 * * *',
   },
   {
-    id: '@ad268aeaf9d4507e827ed1018ac8ed64',
+    id: '方潇',
     city: '南京',
     type: CONCACT_TYPE.ROOM,
     time: '20 7 * * *',
@@ -33,7 +33,7 @@ const scheduleReportToRoomImpl = async (bot, scheduleItem) => {
 
     if (type === CONCACT_TYPE.CONTCAT) {
       // 获取联系人
-      sayer = await bot.Contact.find({ id })
+      sayer = await bot.Contact.find({ name: id })
       if (!sayer) {
         throw new Error(`找不到联系人 ID: ${id}`)
       }
@@ -58,15 +58,19 @@ const scheduleReportToRoomImpl = async (bot, scheduleItem) => {
     let sayerName = await (typeof sayer.name === 'function' ? sayer.name() : sayer.topic())
     console.log(`已为 ${sayerName} 设置天气预报定时任务`)
   } catch (error) {
-    console.error('设置群聊定时任务失败:', error)
+    console.error('设置聊定时任务失败:', error)
     throw error
   }
 }
 
-export const scheduleReportToRoom = (bot, scheduleItem) => {
-  return SCHEDULE_LIST.reduce((p, item) => {
-    return p.then(() => {
-      return scheduleReportToRoomImpl(bot, item)
-    })
-  }, Promise.resolve())
+export const scheduleReportToRoom = async (bot, scheduleItem) => {
+  const list = await bot.Contact.findAll()
+  for (const item of list) {
+    const avatar = await item.avatar()
+    const alias = await item.alias()
+    console.log('x', avatar, alias)
+  }
+  for (const item of SCHEDULE_LIST) {
+    await scheduleReportToRoomImpl(bot, item)
+  }
 }
